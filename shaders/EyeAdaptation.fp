@@ -25,6 +25,19 @@ vec3 filmicHable(vec3 x) {
     return clamp(curr * whiteScale, 0.0, 1.0);
 }
 
+// Exposure Fusion Inspired HDR Workspace constants & helper functions
+#define WHITEPOINT 12.0
+
+vec3 SDRtoHDR(vec3 sdr) {
+    float limit = 1.0 + exp2(-WHITEPOINT);
+    return sdr / max(vec3(limit) - sdr, vec3(0.0001));
+}
+
+vec3 HDRtoSDR(vec3 hdr) {
+    float limit = 1.0 + exp2(-WHITEPOINT);
+    return (hdr * limit) / (vec3(1.0) + hdr);
+}
+
 void main() {
     vec4 texel = texture(InputTexture, TexCoord);
     
@@ -40,32 +53,39 @@ void main() {
             color = vec3(0.5);
         }
     } else {
-        // Left side or full screen is adapted and optionally tone-mapped
-        color = texel.rgb * exposure;
+        // Left side or full screen: transform raw color to HDR workspace
+        vec3 hdrColor = SDRtoHDR(texel.rgb);
         
-        // 1. Pre-Tonemap Exposure Bias
-        color *= tonemapExposure;
+        // Apply exposure and tonemap exposure bias in log space for natural perception scaling
+        float luma = dot(hdrColor, vec3(0.2126, 0.7152, 0.0722));
+        float logLum = log2(max(luma, 0.0001));
         
-        // 2. Tone-mapping Curve
+        logLum += log2(max(exposure * tonemapExposure, 0.0001));
+        hdrColor *= exp2(logLum - log2(max(luma, 0.0001)));
+        
+        // Tone-mapping Curve
         if (tonemapMode == 1) {
             // Reinhard with white-point/burn parameter
-            vec3 num = color * (vec3(1.0) + (color / (reinhardBurn * reinhardBurn)));
-            vec3 den = vec3(1.0) + color;
-            color = clamp(num / den, 0.0, 1.0);
+            vec3 num = hdrColor * (vec3(1.0) + (hdrColor / (reinhardBurn * reinhardBurn)));
+            vec3 den = vec3(1.0) + hdrColor;
+            hdrColor = clamp(num / den, 0.0, 1.0);
         } else if (tonemapMode == 2) {
             // ACES
-            color = aces(color);
+            hdrColor = aces(hdrColor);
         } else if (tonemapMode == 3) {
             // Hable Filmic
-            color = filmicHable(color);
+            hdrColor = filmicHable(hdrColor);
         }
+        
+        // Convert HDR workspace back to SDR representation
+        color = HDRtoSDR(hdrColor);
         
         // 3. Post-Tonemap Contrast
         color = (color - 0.5) * filmContrast + 0.5;
         
         // 4. Post-Tonemap Saturation
-        float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
-        color = mix(vec3(luma), color, filmSaturation);
+        float sdrLuma = dot(color, vec3(0.2126, 0.7152, 0.0722));
+        color = mix(vec3(sdrLuma), color, filmSaturation);
         
         color = clamp(color, 0.0, 1.0);
         
