@@ -1,0 +1,11 @@
+user bool  eye_adapt_enabled = true;      // Master toggle
+user float eye_adapt_speed = 0.05;       // Exposure transition speed
+user float eye_adapt_dark_boost = 2.0;   // Max exposure boost in dark areas
+user float eye_adapt_bright_dim = 0.5;   // Min exposure dimming in bright areas
+user int   eye_adapt_tonemap = 0;        // Tone-mapping Mode: 0=None, 1=Reinhard, 2=ACES, 3=Hable
+user float eye_adapt_reinhard_burn = 2.5; // Reinhard burn white point
+user bool  eye_adapt_split_screen = false; // Split screen comparison mode
+user float eye_adapt_tonemap_exposure = 1.0; // Pre-tonemap exposure bias
+user float eye_adapt_film_contrast = 1.0;    // Post-tonemap contrast
+user float eye_adapt_film_saturation = 1.0;  // Post-tonemap saturation
+

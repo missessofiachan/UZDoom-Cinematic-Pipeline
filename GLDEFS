@@ -1,0 +1,12 @@
+HardwareShader PostProcess Scene
+{
+    Name "EyeAdaptationShader"
+    Shader "shaders/EyeAdaptation.fp" 330
+    Uniform float exposure
+    Uniform int tonemapMode
+    Uniform float reinhardBurn
+    Uniform int splitScreen
+    Uniform float tonemapExposure
+    Uniform float filmContrast
+    Uniform float filmSaturation
+}

@@ -1,0 +1,47 @@
+OptionValue "EyeAdaptTonemapList"
+{
+    0, "None (Direct Linear)"
+    1, "Reinhard"
+    2, "ACES Filmic"
+    3, "Filmic (Uncharted 2)"
+}
+
+AddOptionMenu "OptionsMenu"
+{
+    Submenu "Eye Adaptation Options", "EyeAdaptMenu"
+}
+
+OptionMenu "EyeAdaptMenu"
+{
+    Title "EYE ADAPTATION CONFIG"
+
+    Option "Enable Eye Adaptation", "eye_adapt_enabled", "OnOff"
+    Slider "Adaptation Speed", "eye_adapt_speed", 0.01, 0.20, 0.01
+    Slider "Dark Room Brightness Boost", "eye_adapt_dark_boost", 1.0, 4.0, 0.1
+    Slider "Bright Room Dimming", "eye_adapt_bright_dim", 0.1, 1.0, 0.05
+    Option "Split Screen Comparison", "eye_adapt_split_screen", "OnOff"
+
+    StaticText ""
+    StaticText "--- Tone-Mapping & Film ---"
+    Option "Tone-mapping Style", "eye_adapt_tonemap", "EyeAdaptTonemapList"
+    Slider "Pre-Exposure Bias", "eye_adapt_tonemap_exposure", 0.1, 3.0, 0.1
+    Slider "Film Contrast", "eye_adapt_film_contrast", 0.5, 2.0, 0.05
+    Slider "Film Saturation", "eye_adapt_film_saturation", 0.0, 3.0, 0.05
+    Slider "Reinhard White Point / Burn", "eye_adapt_reinhard_burn", 1.0, 10.0, 0.1
+
+    StaticText ""
+    StaticText "Simulation of dynamic pupillary eye exposure adjustment."
+    
+    StaticText ""
+    StaticText "--- Presets ---"
+    Command "Preset: Realism (Subtle & Natural)", "eye_adapt_speed 0.02; eye_adapt_dark_boost 1.5; eye_adapt_bright_dim 0.8; eye_adapt_tonemap 2; eye_adapt_reinhard_burn 2.5; eye_adapt_split_screen 0; eye_adapt_tonemap_exposure 1.0; eye_adapt_film_contrast 1.0; eye_adapt_film_saturation 1.0"
+    Command "Preset: Cinematic (High Contrast & Fast)", "eye_adapt_speed 0.08; eye_adapt_dark_boost 2.5; eye_adapt_bright_dim 0.4; eye_adapt_tonemap 3; eye_adapt_reinhard_burn 2.5; eye_adapt_split_screen 0; eye_adapt_tonemap_exposure 1.1; eye_adapt_film_contrast 1.15; eye_adapt_film_saturation 1.1"
+    Command "Preset: Balanced (Standard)", "eye_adapt_speed 0.05; eye_adapt_dark_boost 2.0; eye_adapt_bright_dim 0.5; eye_adapt_tonemap 1; eye_adapt_reinhard_burn 2.5; eye_adapt_split_screen 0; eye_adapt_tonemap_exposure 1.0; eye_adapt_film_contrast 1.0; eye_adapt_film_saturation 1.0"
+    Command "Preset: Gritty Noir (Black & White)", "eye_adapt_speed 0.06; eye_adapt_dark_boost 2.8; eye_adapt_bright_dim 0.3; eye_adapt_tonemap 3; eye_adapt_reinhard_burn 2.5; eye_adapt_split_screen 0; eye_adapt_tonemap_exposure 0.9; eye_adapt_film_contrast 1.35; eye_adapt_film_saturation 0.0"
+    Command "Preset: Retro Arcade (Vibrant & Punchy)", "eye_adapt_speed 0.12; eye_adapt_dark_boost 2.0; eye_adapt_bright_dim 0.6; eye_adapt_tonemap 1; eye_adapt_reinhard_burn 1.5; eye_adapt_split_screen 0; eye_adapt_tonemap_exposure 1.2; eye_adapt_film_contrast 1.2; eye_adapt_film_saturation 1.6"
+    Command "Preset: Muted Horror (Desaturated & Dark)", "eye_adapt_speed 0.04; eye_adapt_dark_boost 1.2; eye_adapt_bright_dim 0.2; eye_adapt_tonemap 3; eye_adapt_reinhard_burn 2.5; eye_adapt_split_screen 0; eye_adapt_tonemap_exposure 0.8; eye_adapt_film_contrast 1.25; eye_adapt_film_saturation 0.4"
+    Command "Preset: Dreamy & Bleak (Washed Out)", "eye_adapt_speed 0.01; eye_adapt_dark_boost 3.0; eye_adapt_bright_dim 0.8; eye_adapt_tonemap 2; eye_adapt_reinhard_burn 2.5; eye_adapt_split_screen 0; eye_adapt_tonemap_exposure 1.3; eye_adapt_film_contrast 0.7; eye_adapt_film_saturation 0.8"
+
+    StaticText ""
+    Command "Restore Default Settings", "reset eye_adapt_enabled; reset eye_adapt_speed; reset eye_adapt_dark_boost; reset eye_adapt_bright_dim; reset eye_adapt_tonemap; reset eye_adapt_reinhard_burn; reset eye_adapt_split_screen; reset eye_adapt_tonemap_exposure; reset eye_adapt_film_contrast; reset eye_adapt_film_saturation"
+}
