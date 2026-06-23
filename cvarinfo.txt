@@ -8,4 +8,6 @@ user bool  eye_adapt_split_screen = false; // Split screen comparison mode
 user float eye_adapt_tonemap_exposure = 1.0; // Pre-tonemap exposure bias
 user float eye_adapt_film_contrast = 1.0;    // Post-tonemap contrast
 user float eye_adapt_film_saturation = 1.0;  // Post-tonemap saturation
+user float eye_adapt_tonemap_strength = 1.0;  // Tone-mapping blend strength (0.0 = linear/none, 1.0 = full)
+
 

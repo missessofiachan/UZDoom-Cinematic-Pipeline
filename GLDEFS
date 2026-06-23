@@ -9,4 +9,5 @@ HardwareShader PostProcess Scene
     Uniform float tonemapExposure
     Uniform float filmContrast
     Uniform float filmSaturation
+    Uniform float tonemapStrength
 }

@@ -11,6 +11,7 @@ class EyeAdaptationHandler : StaticEventHandler
     private ui CVar cv_tonemap_exposure;
     private ui CVar cv_film_contrast;
     private ui CVar cv_film_saturation;
+    private ui CVar cv_tonemap_strength;
 
     private ui void InitCVars()
     {
@@ -27,6 +28,7 @@ class EyeAdaptationHandler : StaticEventHandler
         cv_tonemap_exposure = CVar.GetCVar("eye_adapt_tonemap_exposure", player);
         cv_film_contrast = CVar.GetCVar("eye_adapt_film_contrast", player);
         cv_film_saturation = CVar.GetCVar("eye_adapt_film_saturation", player);
+        cv_tonemap_strength = CVar.GetCVar("eye_adapt_tonemap_strength", player);
     }
 
     override void WorldLoaded(WorldEvent e)
@@ -65,6 +67,7 @@ class EyeAdaptationHandler : StaticEventHandler
         double tonemapExpVal = cv_tonemap_exposure ? cv_tonemap_exposure.GetFloat() : 1.0;
         double filmContrastVal = cv_film_contrast ? cv_film_contrast.GetFloat() : 1.0;
         double filmSaturationVal = cv_film_saturation ? cv_film_saturation.GetFloat() : 1.0;
+        double tonemapStrengthVal = cv_tonemap_strength ? cv_tonemap_strength.GetFloat() : 1.0;
 
         double sectorLight = player.camera.CurSector.lightlevel;
 
@@ -93,6 +96,7 @@ class EyeAdaptationHandler : StaticEventHandler
         PPShader.SetUniform1f("EyeAdaptationShader", "tonemapExposure", tonemapExpVal);
         PPShader.SetUniform1f("EyeAdaptationShader", "filmContrast", filmContrastVal);
         PPShader.SetUniform1f("EyeAdaptationShader", "filmSaturation", filmSaturationVal);
+        PPShader.SetUniform1f("EyeAdaptationShader", "tonemapStrength", tonemapStrengthVal);
     }
 }
 

@@ -64,6 +64,7 @@ void main() {
         hdrColor *= exp2(logLum - log2(max(luma, 0.0001)));
         
         // Tone-mapping Curve
+        vec3 preTonemapColor = hdrColor;
         if (tonemapMode == 1) {
             // Reinhard with white-point/burn parameter
             vec3 num = hdrColor * (vec3(1.0) + (hdrColor / (reinhardBurn * reinhardBurn)));
@@ -76,6 +77,7 @@ void main() {
             // Hable Filmic
             hdrColor = filmicHable(hdrColor);
         }
+        hdrColor = mix(preTonemapColor, hdrColor, tonemapStrength);
         
         // Convert HDR workspace back to SDR representation
         color = HDRtoSDR(hdrColor);
