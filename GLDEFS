@@ -11,3 +11,41 @@ HardwareShader PostProcess Scene
     Uniform float filmSaturation
     Uniform float tonemapStrength
 }
+
+HardwareShader PostProcess Scene
+{
+    Name "BloomShader"
+    Shader "shaders/Bloom.fp" 330
+    Uniform float bloomIntensity
+    Uniform float bloomThreshold
+}
+
+HardwareShader PostProcess Scene
+{
+    Name "AnamorphicFlareShader"
+    Shader "shaders/AnamorphicFlare.fp" 330
+    Uniform float flareIntensity
+    Uniform float flareStretch
+    Uniform float bloomThreshold
+}
+
+HardwareShader PostProcess Scene
+{
+    Name "LensDistortionShader"
+    Shader "shaders/LensDistortion.fp" 330
+    Uniform float lensWarp
+}
+
+HardwareShader PostProcess Scene
+{
+    Name "CinematicEffectsShader"
+    Shader "shaders/CinematicEffects.fp" 330
+    Uniform float vignetteIntensity
+    Uniform float chromaticAberration
+    Uniform float grainIntensity
+    Uniform float timer
+    Uniform float casSharpness
+    Uniform float liftVal
+    Uniform float gammaVal
+    Uniform float gainVal
+}
