@@ -1,3 +1,205 @@
 version "4.10"
 
-#include "ZScript/EyeAdaptationHandler.zs"
+class EyeAdaptationHandler : StaticEventHandler
+{
+    private ui double currentExposure;
+    
+    // Core Elements
+    private ui CVar cv_enabled, cv_speed, cv_dark_boost, cv_bright_dim, cv_tonemap, cv_reinhard_burn, cv_split_screen;
+    private ui CVar cv_tonemap_exposure, cv_film_contrast, cv_film_saturation, cv_tonemap_strength;
+    private ui CVar cv_bloom_intensity, cv_bloom_threshold, cv_vignette, cv_chromatic, cv_grain;
+    private ui CVar cv_cas, cv_lift, cv_gamma, cv_gain;
+    private ui CVar cv_flare_intensity, cv_flare_stretch, cv_lens_warp;
+
+    // Advanced Tech Elements
+    private ui CVar cv_ssao_enabled, cv_ssao_radius, cv_ssao_intensity;
+    private ui CVar cv_dof_enabled, cv_dof_amount, cv_dof_focus;
+    private ui CVar cv_godrays_enabled, cv_godrays_density, cv_godrays_weight, cv_godrays_decay;
+    private ui CVar cv_vhs_enabled, cv_vhs_intensity;
+
+    private ui void InitCVars()
+    {
+        PlayerInfo player = players[consoleplayer];
+        if (!player || cv_enabled) return;
+
+        cv_enabled = CVar.GetCVar("eye_adapt_enabled", player);
+        cv_speed = CVar.GetCVar("eye_adapt_speed", player);
+        cv_dark_boost = CVar.GetCVar("eye_adapt_dark_boost", player);
+        cv_bright_dim = CVar.GetCVar("eye_adapt_bright_dim", player);
+        cv_tonemap = CVar.GetCVar("eye_adapt_tonemap", player);
+        cv_reinhard_burn = CVar.GetCVar("eye_adapt_reinhard_burn", player);
+        cv_split_screen = CVar.GetCVar("eye_adapt_split_screen", player);
+        cv_tonemap_exposure = CVar.GetCVar("eye_adapt_tonemap_exposure", player);
+        cv_film_contrast = CVar.GetCVar("eye_adapt_film_contrast", player);
+        cv_film_saturation = CVar.GetCVar("eye_adapt_film_saturation", player);
+        cv_tonemap_strength = CVar.GetCVar("eye_adapt_tonemap_strength", player);
+        
+        cv_bloom_intensity = CVar.GetCVar("eye_adapt_bloom_intensity", player);
+        cv_bloom_threshold = CVar.GetCVar("eye_adapt_bloom_threshold", player);
+        cv_vignette = CVar.GetCVar("eye_adapt_vignette", player);
+        cv_chromatic = CVar.GetCVar("eye_adapt_chromatic", player);
+        cv_grain = CVar.GetCVar("eye_adapt_grain", player);
+
+        cv_cas = CVar.GetCVar("eye_adapt_cas", player);
+        cv_lift = CVar.GetCVar("eye_adapt_lift", player);
+        cv_gamma = CVar.GetCVar("eye_adapt_gamma", player);
+        cv_gain = CVar.GetCVar("eye_adapt_gain", player);
+
+        cv_flare_intensity = CVar.GetCVar("eye_adapt_flare_intensity", player);
+        cv_flare_stretch = CVar.GetCVar("eye_adapt_flare_stretch", player);
+        cv_lens_warp = CVar.GetCVar("eye_adapt_lens_warp", player);
+
+        // New Variable Initialization
+        cv_ssao_enabled = CVar.GetCVar("eye_adapt_ssao_enabled", player);
+        cv_ssao_radius = CVar.GetCVar("eye_adapt_ssao_radius", player);
+        cv_ssao_intensity = CVar.GetCVar("eye_adapt_ssao_intensity", player);
+
+        cv_dof_enabled = CVar.GetCVar("eye_adapt_dof_enabled", player);
+        cv_dof_amount = CVar.GetCVar("eye_adapt_dof_amount", player);
+        cv_dof_focus = CVar.GetCVar("eye_adapt_dof_focus", player);
+
+        cv_godrays_enabled = CVar.GetCVar("eye_adapt_godrays_enabled", player);
+        cv_godrays_density = CVar.GetCVar("eye_adapt_godrays_density", player);
+        cv_godrays_weight = CVar.GetCVar("eye_adapt_godrays_weight", player);
+        cv_godrays_decay = CVar.GetCVar("eye_adapt_godrays_decay", player);
+
+        cv_vhs_enabled = CVar.GetCVar("eye_adapt_vhs_enabled", player);
+        cv_vhs_intensity = CVar.GetCVar("eye_adapt_vhs_intensity", player);
+    }
+
+    override void RenderOverlay(RenderEvent e)
+    {
+        PlayerInfo player = players[consoleplayer];
+        if (!player || !player.camera || !player.camera.CurSector || gamestate == GS_TITLELEVEL || automapactive)
+        {
+            PPShader.SetEnabled("EyeAdaptationShader", false);
+            PPShader.SetEnabled("BloomShader", false);
+            PPShader.SetEnabled("AnamorphicFlareShader", false);
+            PPShader.SetEnabled("LensDistortionShader", false);
+            PPShader.SetEnabled("CinematicEffectsShader", false);
+            PPShader.SetEnabled("GodRaysShader", false);
+            PPShader.SetEnabled("SSAOShader", false);
+            PPShader.SetEnabled("DOFShader", false);
+            PPShader.SetEnabled("VHSShader", false);
+            return;
+        }
+
+        InitCVars();
+        if (cv_enabled && !cv_enabled.GetBool())
+        {
+            PPShader.SetEnabled("EyeAdaptationShader", false);
+            PPShader.SetEnabled("BloomShader", false);
+            PPShader.SetEnabled("AnamorphicFlareShader", false);
+            PPShader.SetEnabled("LensDistortionShader", false);
+            PPShader.SetEnabled("CinematicEffectsShader", false);
+            PPShader.SetEnabled("GodRaysShader", false);
+            PPShader.SetEnabled("SSAOShader", false);
+            PPShader.SetEnabled("DOFShader", false);
+            PPShader.SetEnabled("VHSShader", false);
+            return;
+        }
+
+        if (currentExposure <= 0.0) currentExposure = 1.0;
+
+        double speed = cv_speed ? cv_speed.GetFloat() : 0.05;
+        double maxBoost = cv_dark_boost ? cv_dark_boost.GetFloat() : 2.0;
+        double minDim = cv_bright_dim ? cv_bright_dim.GetFloat() : 0.5;
+        int tonemapVal = cv_tonemap ? cv_tonemap.GetInt() : 2;
+        double reinhardBurnVal = cv_reinhard_burn ? cv_reinhard_burn.GetFloat() : 2.5;
+        int splitScreenVal = (cv_split_screen && cv_split_screen.GetBool()) ? 1 : 0;
+        double tonemapExpVal = cv_tonemap_exposure ? cv_tonemap_exposure.GetFloat() : 1.0;
+        double filmContrastVal = cv_film_contrast ? cv_film_contrast.GetFloat() : 1.0;
+        double filmSaturationVal = cv_film_saturation ? cv_film_saturation.GetFloat() : 1.0;
+        double tonemapStrengthVal = cv_tonemap_strength ? cv_tonemap_strength.GetFloat() : 1.0;
+
+        double sectorLight = player.camera.CurSector.lightlevel;
+        double targetExposure = 1.0;
+        if (sectorLight <= 32) targetExposure = maxBoost;
+        else if (sectorLight >= 224) targetExposure = minDim;
+        else targetExposure = maxBoost + ((sectorLight - 32) / 192.0) * (minDim - maxBoost);
+
+        currentExposure += (targetExposure - currentExposure) * speed;
+
+        // Stage 1: Exposure Control
+        PPShader.SetEnabled("EyeAdaptationShader", true);
+        PPShader.SetUniform1f("EyeAdaptationShader", "exposure", currentExposure);
+        PPShader.SetUniform1i("EyeAdaptationShader", "tonemapMode", tonemapVal);
+        PPShader.SetUniform1f("EyeAdaptationShader", "reinhardBurn", reinhardBurnVal);
+        PPShader.SetUniform1i("EyeAdaptationShader", "splitScreen", splitScreenVal);
+        PPShader.SetUniform1f("EyeAdaptationShader", "tonemapExposure", tonemapExpVal);
+        PPShader.SetUniform1f("EyeAdaptationShader", "filmContrast", filmContrastVal);
+        PPShader.SetUniform1f("EyeAdaptationShader", "filmSaturation", filmSaturationVal);
+        PPShader.SetUniform1f("EyeAdaptationShader", "tonemapStrength", tonemapStrengthVal);
+
+        // Stage 2: Bloom
+        double bIntensity = cv_bloom_intensity ? cv_bloom_intensity.GetFloat() : 0.40;
+        double bThreshold = cv_bloom_threshold ? cv_bloom_threshold.GetFloat() : 0.70;
+        PPShader.SetEnabled("BloomShader", true);
+        PPShader.SetUniform1f("BloomShader", "bloomIntensity", bIntensity);
+        PPShader.SetUniform1f("BloomShader", "bloomThreshold", bThreshold);
+
+        // Stage 3: Anamorphic Flare
+        double fIntensity = cv_flare_intensity ? cv_flare_intensity.GetFloat() : 0.50;
+        double fStretch = cv_flare_stretch ? cv_flare_stretch.GetFloat() : 3.0;
+        PPShader.SetEnabled("AnamorphicFlareShader", true);
+        PPShader.SetUniform1f("AnamorphicFlareShader", "flareIntensity", fIntensity);
+        PPShader.SetUniform1f("AnamorphicFlareShader", "flareStretch", fStretch);
+        PPShader.SetUniform1f("AnamorphicFlareShader", "bloomThreshold", bThreshold);
+
+        // Stage 4: Lens Distortion
+        double lWarp = cv_lens_warp ? cv_lens_warp.GetFloat() : 0.15;
+        PPShader.SetEnabled("LensDistortionShader", true);
+        PPShader.SetUniform1f("LensDistortionShader", "lensWarp", lWarp);
+
+        // Stage 5: Cinematic Grading
+        double vignetteValue = cv_vignette ? cv_vignette.GetFloat() : 0.50;
+        double chromaticValue = cv_chromatic ? cv_chromatic.GetFloat() : 2.0;
+        double grainValue = cv_grain ? cv_grain.GetFloat() : 1.5;
+        double renderTicks = System.GetTimeFrac() + level.time;
+        double sharpnessValue = cv_cas ? cv_cas.GetFloat() : 1.5;
+        double liftValue = cv_lift ? cv_lift.GetFloat() : 0.0;
+        double gammaValue = cv_gamma ? cv_gamma.GetFloat() : 1.0;
+        double gainValue = cv_gain ? cv_gain.GetFloat() : 1.0;
+
+        PPShader.SetEnabled("CinematicEffectsShader", true);
+        PPShader.SetUniform1f("CinematicEffectsShader", "vignetteIntensity", vignetteValue);
+        PPShader.SetUniform1f("CinematicEffectsShader", "chromaticAberration", chromaticValue);
+        PPShader.SetUniform1f("CinematicEffectsShader", "grainIntensity", grainValue);
+        PPShader.SetUniform1f("CinematicEffectsShader", "timer", renderTicks);
+        PPShader.SetUniform1f("CinematicEffectsShader", "casSharpness", sharpnessValue);
+        PPShader.SetUniform1f("CinematicEffectsShader", "liftVal", liftValue);
+        PPShader.SetUniform1f("CinematicEffectsShader", "gammaVal", gammaValue);
+        PPShader.SetUniform1f("CinematicEffectsShader", "gainVal", gainValue);
+
+        // Stage 6: Advanced Screen Space Passes
+
+        // God Rays
+        if (cv_godrays_enabled && cv_godrays_enabled.GetBool()) {
+            PPShader.SetEnabled("GodRaysShader", true);
+            PPShader.SetUniform1f("GodRaysShader", "density", cv_godrays_density ? cv_godrays_density.GetFloat() : 0.8);
+            PPShader.SetUniform1f("GodRaysShader", "weight", cv_godrays_weight ? cv_godrays_weight.GetFloat() : 0.25);
+            PPShader.SetUniform1f("GodRaysShader", "decay", cv_godrays_decay ? cv_godrays_decay.GetFloat() : 0.95);
+        } else { PPShader.SetEnabled("GodRaysShader", false); }
+
+        // SSAO
+        if (cv_ssao_enabled && cv_ssao_enabled.GetBool()) {
+            PPShader.SetEnabled("SSAOShader", true);
+            PPShader.SetUniform1f("SSAOShader", "radius", cv_ssao_radius ? cv_ssao_radius.GetFloat() : 2.0);
+            PPShader.SetUniform1f("SSAOShader", "intensity", cv_ssao_intensity ? cv_ssao_intensity.GetFloat() : 1.0);
+        } else { PPShader.SetEnabled("SSAOShader", false); }
+
+        // Depth of Field
+        if (cv_dof_enabled && cv_dof_enabled.GetBool()) {
+            PPShader.SetEnabled("DOFShader", true);
+            PPShader.SetUniform1f("DOFShader", "blurAmount", cv_dof_amount ? cv_dof_amount.GetFloat() : 1.5);
+            PPShader.SetUniform1f("DOFShader", "focusDistance", cv_dof_focus ? cv_dof_focus.GetFloat() : 0.5);
+        } else { PPShader.SetEnabled("DOFShader", false); }
+
+        // Retro VHS
+        if (cv_vhs_enabled && cv_vhs_enabled.GetBool()) {
+            PPShader.SetEnabled("VHSShader", true);
+            PPShader.SetUniform1f("VHSShader", "timer", renderTicks);
+            PPShader.SetUniform1f("VHSShader", "intensity", cv_vhs_intensity ? cv_vhs_intensity.GetFloat() : 0.5);
+        } else { PPShader.SetEnabled("VHSShader", false); }
+    }
+}

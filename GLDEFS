@@ -49,3 +49,38 @@ HardwareShader PostProcess Scene
     Uniform float gammaVal
     Uniform float gainVal
 }
+
+HardwareShader PostProcess Scene
+{
+    Name "GodRaysShader"
+    Shader "shaders/GodRays.fp" 330
+    Uniform float density
+    Uniform float weight
+    Uniform float decay
+}
+
+HardwareShader PostProcess Scene
+{
+    Name "SSAOShader"
+    Shader "shaders/SSAO.fp" 430
+    Uniform float radius
+    Uniform float intensity
+    Texture 1 ""
+}
+
+HardwareShader PostProcess Scene
+{
+    Name "DOFShader"
+    Shader "shaders/DepthOfField.fp" 430
+    Uniform float blurAmount
+    Uniform float focusDistance
+    Texture 1 ""
+}
+
+HardwareShader PostProcess Scene
+{
+    Name "VHSShader"
+    Shader "shaders/RetroVHS.fp" 330
+    Uniform float timer
+    Uniform float intensity
+}

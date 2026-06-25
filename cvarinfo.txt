@@ -23,5 +23,24 @@ user float eye_adapt_gain = 1.0;
 
 // New Architecture Additions
 user float eye_adapt_flare_intensity = 0.50; // Anamorphic streak mix strength
-user float eye_adapt_flare_stretch = 3.0;   // Horizontal stretch dispersion width
+user float eye_adapt_flare_stretch = 3.0;    // Horizontal stretch dispersion width
 user float eye_adapt_lens_warp = 0.15;       // Cubic lens barrel curvature distortion
+
+// --- Advanced Tech (SSAO & DoF) ---
+user bool  eye_adapt_ssao_enabled = false;
+user float eye_adapt_ssao_radius = 2.0;
+user float eye_adapt_ssao_intensity = 1.0;
+
+user bool  eye_adapt_dof_enabled = false;
+user float eye_adapt_dof_amount = 1.5;
+user float eye_adapt_dof_focus = 0.5;
+
+// --- Volumetric Light & Retro FX ---
+user bool  eye_adapt_godrays_enabled = false;
+user float eye_adapt_godrays_density = 0.8;
+user float eye_adapt_godrays_weight = 0.25;
+user float eye_adapt_godrays_decay = 0.95;
+
+user bool  eye_adapt_vhs_enabled = false;
+user float eye_adapt_vhs_intensity = 0.5;
+
